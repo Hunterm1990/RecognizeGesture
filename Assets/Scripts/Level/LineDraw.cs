@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class LineDraw : MonoBehaviour
 {
-    public GameObject lineDrawPrefabs; // this is where we put the prefabs object
+    public GameObject lineDrawPrefabs; // Prefab объект линии компонента line renderer 
     public bool EditMode = false;
     public float TimeToRound = 25f, SpeedDownCoeff = 0.98f;
     public int CurScore = 0, BestScore = 0;
@@ -38,12 +38,15 @@ public class LineDraw : MonoBehaviour
     {
         GameUI.SetActive(true);
         GameOverUI.SetActive(false);
+
+        // Проверка на наличие файла с лучшим результатом
         if (PlayerPrefs.HasKey("HighScore"))
         {
             BestScore = PlayerPrefs.GetInt("HighScore");
             highScoreText.text = "Лучший счет: " + BestScore.ToString();
         }
 
+        // создание фигуры - треугольник1
         TFigure Fig = new TFigure();
         Fig.ID = 0;
         Fig.Nodes = new Vector3[3];
@@ -56,6 +59,7 @@ public class LineDraw : MonoBehaviour
         Fig.Angles[2] = Vector3.Angle(Fig.Nodes[1] - Fig.Nodes[2], Fig.Nodes[0] - Fig.Nodes[2]);
         Figures.Add(Fig);
 
+        // создание фигуры - квадрат
         Fig = new TFigure();
         Fig.ID = 1;
         Fig.Nodes = new Vector3[4];
@@ -70,6 +74,7 @@ public class LineDraw : MonoBehaviour
         Fig.Angles[3] = Vector3.Angle(Fig.Nodes[2] - Fig.Nodes[3], Fig.Nodes[0] - Fig.Nodes[3]);
         Figures.Add(Fig);
 
+        // создание фигуры - треугольник2
         Fig = new TFigure();
         Fig.ID = 2;
         Fig.Nodes = new Vector3[3];
@@ -82,18 +87,22 @@ public class LineDraw : MonoBehaviour
         Fig.Angles[2] = Vector3.Angle(Fig.Nodes[1] - Fig.Nodes[2], Fig.Nodes[0] - Fig.Nodes[2]);
         Figures.Add(Fig);
 
+        // показ фигуры для решения и настройка параметром компонента line renderer
         ShowFigure = new GameObject("SampleFigure");
         ShowFigure.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 200f, 0f);
         ShowFigureLine = ShowFigure.AddComponent<LineRenderer>();
         ShowFigureLine.SetWidth(0.5f, 0.5f);
         DrawSample();
 
+        // инициализация времени и счета
         LastTime = Time.time;
         TimeToRound = 25;
         CurScore = 0;        
     }
 
     int DrawID;
+
+    // метод для составления рандомной фигуры из заданных точек
     void DrawSample()
     {
         DrawID = Random.Range(0, Figures.Count);
@@ -103,11 +112,11 @@ public class LineDraw : MonoBehaviour
         ShowFigureLine.SetPosition(Figures[DrawID].Nodes.Length, Figures[DrawID].Nodes[0]);
     }
 
+    // метод сравнения нарисованной и сгенерированной фигуры
     bool CompareFigure()
     {
         bool CompareResult = false;
         float CurAngle;
-        //Debug.Log("Compare: " + drawPoints.Count + " | " + Figures[DrawID].Nodes.Length);
         if (drawPoints.Count - 1 == Figures[DrawID].Nodes.Length)
         {
             for (int nodeID = 0; nodeID < drawPoints.Count - 1; nodeID++)
@@ -116,12 +125,11 @@ public class LineDraw : MonoBehaviour
                 else CurAngle = Vector3.Angle(drawPoints[nodeID - 1] - drawPoints[nodeID], drawPoints[nodeID + 1] - drawPoints[nodeID]);
                 if (Mathf.Abs(CurAngle - Figures[DrawID].Angles[nodeID]) > 10f) break;
                 else if (nodeID == drawPoints.Count - 2) CompareResult = true;
-                //Debug.Log("Node: " + nodeID);
             }
         }
-        //Debug.Log("Result: " + CompareResult);
         return CompareResult;
     }
+
 
     void AddFigure(Vector3[] points)
     {
@@ -147,6 +155,7 @@ public class LineDraw : MonoBehaviour
         Figures.Add(Fig);
     }
 
+    // метод показывающий экран проигрыша с счетчиками результатов и кнопками выхода, игры сначала
     void GameOver()
     {
         scoreGO.text = "Счет: " + CurScore.ToString();
@@ -159,11 +168,14 @@ public class LineDraw : MonoBehaviour
         CurScore = 0;
     }
 
+
     float DistMouseMove, MouseAngle, DistAngleSelect = 5f, LastTime = 0f;
     Vector3 point, MousePosBack, MousePosFront, MouseWorldPos;
+    
     // Update is called once per frame
     void Update()
     {
+        // ослеживание движения мыши для визуализации частиц в этом же месте
         CursorPS.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 20f));
 
         if (!GameUI.activeSelf) return;
@@ -171,23 +183,24 @@ public class LineDraw : MonoBehaviour
             GameOver();
         timeText.text = Mathf.Round((TimeToRound - (Time.time - LastTime))).ToString();
 
+        // если нажата правая кнопка миши удаляет нарисованный объект
         if (Input.GetMouseButtonDown(1))
         {
             isMousePressed = false;
 
-            // delete the LineRenderers when right mouse down
             GameObject[] delete = GameObject.FindGameObjectsWithTag("LineDraw");
             int deleteCount = delete.Length;
             for (int i = deleteCount - 1; i >= 0; i--)
                 Destroy(delete[i]);
         }
 
-        if (Input.GetKeyUp(KeyCode.Return)) EditMode = !EditMode;
+        if (Input.GetKeyUp(KeyCode.Return)) EditMode = !EditMode; // переход в режим создания фигуры
 
+        // Если нажата левая кнопка мыши происходит создание префаба с line renderer компонентом
         if (Input.GetMouseButtonDown(0))
         {
             ShowFigure.SetActive(false);
-            // left mouse down, make a new line renderer
+            CursorPS.SetActive(true);
             isMousePressed = true;
             lineDrawPrefab = GameObject.Instantiate(lineDrawPrefabs) as GameObject;
             lineRenderer = lineDrawPrefab.GetComponent<LineRenderer>();
@@ -201,6 +214,7 @@ public class LineDraw : MonoBehaviour
         else if (Input.GetMouseButtonUp(0))
         {
             ShowFigure.SetActive(true);
+            CursorPS.SetActive(false);
             if (!EditMode) {
                 if (CompareFigure()) {
                     DrawSample();
@@ -218,12 +232,12 @@ public class LineDraw : MonoBehaviour
             }
             else AddFigure(drawPoints.ToArray());
             
-            // left mouse up, stop drawing
+            // отжата левая кнопка мыши рисование прекращается
             isMousePressed = false;
             lineRenderer.SetPosition(drawPoints.Count - 1, drawPoints[0]);
             drawPoints.Clear();
 
-            // delete the LineRenderers when right mouse down
+            // если нажата правая кнопка миши удаляет нарисованный объект
             GameObject[] delete = GameObject.FindGameObjectsWithTag("LineDraw");
             int deleteCount = delete.Length;
             for (int i = deleteCount - 1; i >= 0; i--)
@@ -232,8 +246,7 @@ public class LineDraw : MonoBehaviour
 
         if (isMousePressed)
         {
-            // when the left mouse button pressed
-            // continue to add vertex to line renderer
+            // если удерживается нажатая кнопка миши продолжаются создаваться точки для построения прямой
             MouseWorldPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 20f));
             DistMouseMove = Vector3.Distance(MousePosBack, MouseWorldPos);
             if (DistMouseMove > DistAngleSelect)
