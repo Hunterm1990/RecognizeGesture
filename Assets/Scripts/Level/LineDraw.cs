@@ -70,6 +70,18 @@ public class LineDraw : MonoBehaviour
         Fig.Angles[3] = Vector3.Angle(Fig.Nodes[2] - Fig.Nodes[3], Fig.Nodes[0] - Fig.Nodes[3]);
         Figures.Add(Fig);
 
+        Fig = new TFigure();
+        Fig.ID = 2;
+        Fig.Nodes = new Vector3[3];
+        Fig.Nodes[0] = new Vector3(0f, 10f, 20f);
+        Fig.Nodes[1] = new Vector3(10, 30f, 20f);
+        Fig.Nodes[2] = new Vector3(-10f, 30f, 20f);
+        Fig.Angles = new float[3];
+        Fig.Angles[0] = Vector3.Angle(Fig.Nodes[2] - Fig.Nodes[0], Fig.Nodes[1] - Fig.Nodes[0]);
+        Fig.Angles[1] = Vector3.Angle(Fig.Nodes[0] - Fig.Nodes[1], Fig.Nodes[2] - Fig.Nodes[1]);
+        Fig.Angles[2] = Vector3.Angle(Fig.Nodes[1] - Fig.Nodes[2], Fig.Nodes[0] - Fig.Nodes[2]);
+        Figures.Add(Fig);
+
         ShowFigure = new GameObject("SampleFigure");
         ShowFigure.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 200f, 0f);
         ShowFigureLine = ShowFigure.AddComponent<LineRenderer>();
