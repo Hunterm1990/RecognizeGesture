@@ -1,29 +1,29 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 using System.Collections.Generic;
 
 public class LineDraw : MonoBehaviour
 {
     public GameObject lineDrawPrefabs; // Prefab объект линии компонента line renderer 
-    public bool EditMode = false;
-    public float TimeToRound = 25f, SpeedDownCoeff = 0.98f;
-    public int CurScore = 0, BestScore = 0;
+    public bool EditMode = false; // переменная включения/отключения Edit Mode
+    public float TimeToRound = 25f, SpeedDownCoeff = 0.98f; // начальное значение отсчета времени и коэф. уменьшения его 
+    public int CurScore = 0, BestScore = 0; // счетчики текущего и лучшего счета
 
-    public Text scoreText;
-    public Text highScoreText;
-    public Text timeText;
+    public Text scoreText; // ссылка на UI текста с текущем счетом
+    public Text highScoreText; // ссылка на UI текста с лучшим счетом
+    public Text timeText; // ссылка на UI текста для отсчета времени
 
-    public Text scoreGO;
-    public Text highScoreGO;
+    public Text scoreGO; // ссылка на UI текста с текущем счетом при проигрыше
+    public Text highScoreGO; // ссылка на UI текста с лучшим счетом при проигрыше
 
-    public GameObject GameUI, GameOverUI, CursorPS;
+    public GameObject GameUI, GameOverUI, CursorPS; // ссылки на игровые объекты с UI для игры, проигрыше и системы частиц
 
-    private bool isMousePressed = false;
-    private GameObject lineDrawPrefab, ShowFigure;
-    private LineRenderer lineRenderer, ShowFigureLine;
-    private List<Vector3> drawPoints = new List<Vector3>();
+    private bool isMousePressed = false; // проверка нажата кнопка мыши
+    private GameObject lineDrawPrefab, ShowFigure; // глобальный объект рисуемой и фигуры для задания
+    private LineRenderer lineRenderer, ShowFigureLine; // переменная для доступа к компоненту line renderer для рисуемой и по заданию фигуры 
+    private List<Vector3> drawPoints = new List<Vector3>(); // список опорных точек нарисованной фигуры
 
+    // структура переменных для фигур (вершины, id, углы)
     struct TFigure
     {
         public Vector3[] Nodes;
@@ -31,6 +31,7 @@ public class LineDraw : MonoBehaviour
         public float[] Angles;
     }
 
+    // массив хранения фигур
     private List<TFigure> Figures = new List<TFigure>();
 
     // Use this for initialization
@@ -100,7 +101,7 @@ public class LineDraw : MonoBehaviour
         CurScore = 0;        
     }
 
-    int DrawID;
+    int DrawID; // переменная для хранения ID фигуры
 
     // метод для составления рандомной фигуры из заданных точек
     void DrawSample()
@@ -130,9 +131,10 @@ public class LineDraw : MonoBehaviour
         return CompareResult;
     }
 
-
+    // метод добавления нарисованной фигуры в Edit mode 
     void AddFigure(Vector3[] points)
     {
+        // ценрирование координат узлов фигуры относительно цетра масс
         Vector3 Center = Vector3.zero;
         for (int nodeID = 0; nodeID < points.Length; nodeID++)
             Center += points[nodeID];
@@ -142,6 +144,7 @@ public class LineDraw : MonoBehaviour
         for (int nodeID = 0; nodeID < points.Length; nodeID++)
             points[nodeID] -= Center;
 
+        // занесение фигуры в список с предварительным расчетом углов
         TFigure Fig = new TFigure();
         Fig.ID = Figures.Count;
         Fig.Nodes = new Vector3[points.Length - 1];
